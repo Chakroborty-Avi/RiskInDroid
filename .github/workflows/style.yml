@@ -3,7 +3,7 @@ name: Style
 on:
   push:
     branches:
-      - master
+    - master
 
 jobs:
   auto-format:
@@ -11,20 +11,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - uses: clonedSemicolon/setup-strace@v13
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - run: pip install ruff
+    - run: pip install ruff
 
-      - name: Lint & format code with ruff and commit any changes
-        run: |
-          ruff check --output-format=github --fix .
-          ruff format .
-          git config --global user.name 'Auto ruff formatter'
-          git config --global user.email 'claudiugeorgiu@users.noreply.github.com'
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-          git checkout ${GITHUB_REF#refs/heads/}
-          git diff --quiet || git commit -am "Format code with ruff [auto]" && git push
+    - name: Lint & format code with ruff and commit any changes
+      run: |
+        ruff check --output-format=github --fix .
+        ruff format .
+        git config --global user.name 'Auto ruff formatter'
+        git config --global user.email 'claudiugeorgiu@users.noreply.github.com'
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+        git checkout ${GITHUB_REF#refs/heads/}
+        git diff --quiet || git commit -am "Format code with ruff [auto]" && git push
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
